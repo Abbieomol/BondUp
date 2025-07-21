@@ -7,6 +7,7 @@ from .views import (
     UpdateProfileView,
     LikeDislikeView,
     CommentView,
+    
     NotificationListView,
     DeletePostView,
     PostDetailView
@@ -24,6 +25,7 @@ urlpatterns = [
 
     path('posts/<int:post_id>/comment/', CommentView.as_view(), name='post_comment'),
     
+
     path('profile/update/', UpdateProfileView.as_view(), name='update_profile'),
     path('notifications/', NotificationListView.as_view(), name='notifications'),
 
