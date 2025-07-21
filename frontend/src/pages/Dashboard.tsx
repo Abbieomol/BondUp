@@ -89,6 +89,24 @@ const Dashboard = () => {
     }
   };
 
+  const handleDelete = async (postId: number) => {
+    const accessToken = localStorage.getItem("accessToken");
+
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/api/posts/${postId}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (res.ok) fetchPosts();
+      else console.error("Failed to delete post");
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    }
+  };
+
   return (
     <div className="page-layout">
       <Sidebar />
@@ -102,6 +120,7 @@ const Dashboard = () => {
               onLike={handleLike}
               onDislike={handleDislike}
               onComment={handleComment}
+              onDelete={handleDelete} 
             />
           ))}
         </div>

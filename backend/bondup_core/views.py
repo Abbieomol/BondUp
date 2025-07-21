@@ -84,7 +84,7 @@ class LikeDislikeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, post_id):
-        value = request.data.get("value")  # should be 'like' or 'dislike'
+        value = request.data.get("value")  
         if value not in ['like', 'dislike']:
             return Response({'detail': 'Invalid value'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -178,3 +178,17 @@ class NotificationListView(APIView):
             for n in notifications
         ]
         return Response(data)
+
+from django.shortcuts import get_object_or_404
+
+class DeletePostView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post, id=post_id)
+
+        if post.user != request.user:
+            return Response({'detail': 'You do not have permission to delete this post.'}, status=status.HTTP_403_FORBIDDEN)
+
+        post.delete()
+        return Response({'detail': 'Post deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
