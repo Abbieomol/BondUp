@@ -10,8 +10,10 @@ type Props = {
 
 type Notification = {
   id: number;
+  actor____username: string;
   message: string;
   created_at: string;
+  is_self: boolean;
 };
 
 export default function Notifications({ user, onLogout }: Props) {
@@ -20,9 +22,9 @@ export default function Notifications({ user, onLogout }: Props) {
   useEffect(() => {
     // Replace with API call later
     const mockNotifications = [
-      { id: 1, message: "Jane liked your post", created_at: "2m ago" },
-      { id: 2, message: "Tom started following you", created_at: "10m ago" },
-      { id: 3, message: "You commented on Sarah's post", created_at: "1h ago" },
+      { id: 1, actor____username: "Nicole", message: "Jane liked your post", created_at: "2m ago", is_self: false },
+      { id: 2, actor____username: "Tom", message: "Tom started following you", created_at: "10m ago", is_self: false },
+      { id: 3, actor____username: "You", message: "You commented on Sarah's post", created_at: "1h ago", is_self: true },
     ];
     setNotifications(mockNotifications);
   }, []);

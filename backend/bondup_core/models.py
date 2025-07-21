@@ -10,6 +10,8 @@ class Post(models.Model):
     caption = models.TextField()
     image = models.ImageField(upload_to='posts/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    edited = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f"{self.user.username}'s post"
@@ -60,6 +62,8 @@ class Notification(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    is_self = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f"Notification for {self.recipient.username}"

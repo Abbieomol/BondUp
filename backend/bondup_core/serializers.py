@@ -25,6 +25,14 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_dislikes(self, obj):
         return obj.likes.filter(value='dislike').count()
+    
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        elif obj.image:
+            return obj.image.url
+        return None
 
 
 class UserSerializer(serializers.ModelSerializer):  
@@ -58,7 +66,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PostCreateSerializer(serializers.ModelSerializer):  
     class Meta:
         model = Post
-        fields = ['id', 'user', 'caption', 'image', 'created_at']
+        fields = ['id', 'user', 'caption', 'image', 'created_at', 'edited']
         extra_kwargs = {
             'image': {'required': False, 'allow_null': True},
         }

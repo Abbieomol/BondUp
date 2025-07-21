@@ -116,14 +116,13 @@ class CommentView(APIView):
         comment = Comment.objects.create(user=request.user, post=post, text=text)
         serializer = CommentSerializer(comment)
 
-        # ✅ Notification for comment (and prevent self-notifications)
-        if post.user != request.user:
-            Notification.objects.create(
-                recipient=post.user,
-                actor=request.user,
-                post=post,
-                message=f"{request.user.username} commented on your post."
-            )
+        # ✅ Always notify, even for self-comments
+        Notification.objects.create(
+            recipient=post.user,
+            actor=request.user,
+            post=post,
+            message=f"{request.user.username} commented on your post."
+        )
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -143,14 +142,21 @@ class PostDetailView(APIView):
 
     def put(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
+        print("Current user making request:", request.user)
 
         if post.user != request.user:
             return Response({"error": "You can only edit your own posts."}, status=status.HTTP_403_FORBIDDEN)
 
+       
+        if hasattr(post, 'edited') and post.edited:
+            return Response({'error': 'You can only edit once.'}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = PostCreateSerializer(post, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            
+            serializer.save(edited=True)
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, post_id):
@@ -173,7 +179,9 @@ class NotificationListView(APIView):
                 "message": n.message,
                 "post_id": n.post.id if n.post else None,
                 "created_at": n.created_at,
-                "actor": n.actor.username
+                "actor": n.actor.username,
+                "is_self": n.is_self,
+                "is_read": n.actor == request.user  
             }
             for n in notifications
         ]

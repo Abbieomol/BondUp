@@ -7,18 +7,29 @@ interface PostCardProps {
   onLike: (postId: number) => Promise<void>;
   onDislike: (postId: number) => Promise<void>;
   onComment: (postId: number, text: string) => Promise<void>;
-  onDelete?: (postId: number) => Promise<void>; 
+  onDelete?: (postId: number) => Promise<void>;
+  onEdit?: (postId: number, updatedData: { caption: string; image?: File | null }) => Promise<void>;
 }
 
-export default function PostCard({ post, onLike, onDislike, onComment, onDelete }: PostCardProps) {
+export default function PostCard({ post, onLike, onDislike, onComment, onDelete, onEdit }: PostCardProps) {
   const [commentText, setCommentText] = useState("");
   const [showMenu, setShowMenu] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editCaption, setEditCaption] = useState(post.caption || "");
+  const [editImage, setEditImage] = useState<File | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (commentText.trim()) {
       onComment(post.id, commentText.trim());
       setCommentText("");
+    }
+  };
+
+  const handleEditSubmit = async () => {
+    if (onEdit) {
+      await onEdit(post.id, { caption: editCaption, image: editImage });
+      setEditing(false);
     }
   };
 
@@ -33,15 +44,34 @@ export default function PostCard({ post, onLike, onDislike, onComment, onDelete 
   return (
     <div className="post-card">
       {post.image && (
-        <img src={post.image} alt="Post" className="post-image" />
+        <img src={`http://127.0.0.1:8000${post.image}`} alt="Post" className="post-image" />
       )}
 
       <div className="post-content">
         <div className="post-header">
-          {post.caption && <p className="caption">{post.caption}</p>}
+          {!editing && post.caption && <p className="caption">{post.caption}</p>}
+
+          {editing && (
+            <div className="edit-form">
+              <input
+                type="text"
+                value={editCaption}
+                onChange={(e) => setEditCaption(e.target.value)}
+                placeholder="Edit caption"
+              />
+              <input
+                title="Edit image"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setEditImage(e.target.files?.[0] || null)}
+              />
+              <button onClick={handleEditSubmit}>✅ Save</button>
+              <button onClick={() => setEditing(false)}>❌ Cancel</button>
+            </div>
+          )}
 
           <div className="menu-wrapper">
-            <button 
+            <button
               title="More options"
               className="menu-btn"
               onClick={() => setShowMenu(!showMenu)}
@@ -51,6 +81,7 @@ export default function PostCard({ post, onLike, onDislike, onComment, onDelete 
             {showMenu && (
               <div className="dropdown-menu">
                 <button onClick={handleDelete}>🗑 Delete</button>
+                <button onClick={() => { setEditing(true); setShowMenu(false); }}>✏️ Edit</button>
               </div>
             )}
           </div>

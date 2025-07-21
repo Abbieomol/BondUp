@@ -89,6 +89,36 @@ const Dashboard = () => {
     }
   };
 
+  const handleEditPost = async (postId: number, updatedData: { caption: string; image?: File | null }) => {
+  const accessToken = localStorage.getItem("accessToken");
+
+  const formData = new FormData();
+  formData.append("caption", updatedData.caption);
+  if (updatedData.image) {
+    formData.append("image", updatedData.image);
+  }
+
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/api/posts/${postId}/`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Post updated:", data);
+      // optionally re-fetch posts or update UI
+    } else {
+      console.error("Failed to update post");
+    }
+  } catch (error) {
+    console.error("Error updating post:", error);
+  }
+};
+
   const handleDelete = async (postId: number) => {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -121,6 +151,7 @@ const Dashboard = () => {
               onDislike={handleDislike}
               onComment={handleComment}
               onDelete={handleDelete} 
+              onEdit={handleEditPost}  // Assuming handleEdit is defined similarly to handleDelete
             />
           ))}
         </div>
