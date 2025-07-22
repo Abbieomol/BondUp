@@ -32,9 +32,12 @@ class Profile(models.Model):
 
 # Signal to create Profile automatically for new users
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created and not hasattr(instance, 'profile'):
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    from .models import Profile
+    if created:
         Profile.objects.create(user=instance)
+    else:
+        instance.profile.save()
 
 
 class Like(models.Model):
@@ -67,3 +70,14 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.recipient.username}"
+    
+class Follow(models.Model):
+    follower = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
+    following = models.ForeignKey(User, related_name='followers', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'following')
+
+    def __str__(self):
+        return f"{self.follower.username} follows {self.following.username}"

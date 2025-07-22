@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { backend_api } from "../api";
-import "../styles/App.css"; 
+import "../styles/App.css";
 
 const SignupPage = () => {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const [error, setError] = useState("");
@@ -21,11 +23,23 @@ const SignupPage = () => {
     e.preventDefault();
     setError("");
 
+    const { username, email, password, confirmPassword } = formData;
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     try {
       const response = await fetch(`${backend_api}signup/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ username, email, password }),
       });
 
       if (response.ok) {
@@ -35,7 +49,7 @@ const SignupPage = () => {
         const data = await response.json();
         setError(data.detail || "Signup failed.");
       }
-    } catch  {
+    } catch {
       setError("Something went wrong. Try again.");
     }
   };
@@ -66,8 +80,17 @@ const SignupPage = () => {
         <input
           type="password"
           name="password"
-          placeholder="Create Password"
+          placeholder="Create Password (min 8 characters)"
           value={formData.password}
+          onChange={handleChange}
+          required
+        />
+
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="Confirm Password"
+          value={formData.confirmPassword}
           onChange={handleChange}
           required
         />

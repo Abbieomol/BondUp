@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { backend_api } from "../api";
 import type { Post } from "../types/types";
-import "../styles/App.css"
+import "../styles/App.css";
 
 type EditableDetails = {
   username: string;
@@ -25,6 +25,7 @@ const ProfilePage = ({ handleLogout }: { handleLogout: () => void }) => {
     gender: "",
     professionalInfo: "",
   });
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState(0);
   const [following, setFollowing] = useState(0);
@@ -38,13 +39,13 @@ const ProfilePage = ({ handleLogout }: { handleLogout: () => void }) => {
       });
       const data = await res.json();
       setEditableDetails({
-        username: data.username,
-        email: data.email,
+        username: data.username || "",
+        email: data.email || "",
         name: data.name || "",
         bio: data.bio || "",
         contact: data.contact || "",
         gender: data.gender || "",
-        professionalInfo: data.professionalInfo || "",
+        professionalInfo: data.professional_info || "", // Match backend key
       });
     } catch (error) {
       console.error("Failed to load profile", error);
@@ -90,7 +91,10 @@ const ProfilePage = ({ handleLogout }: { handleLogout: () => void }) => {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(editableDetails),
+        body: JSON.stringify({
+          ...editableDetails,
+          professional_info: editableDetails.professionalInfo, // Backend key consistency
+        }),
       });
 
       if (res.ok) {
@@ -105,6 +109,7 @@ const ProfilePage = ({ handleLogout }: { handleLogout: () => void }) => {
 
   const handleDeleteAccount = async () => {
     if (!window.confirm("Are you sure you want to delete your account?")) return;
+
     try {
       const res = await fetch(`${backend_api}delete-account/`, {
         method: "DELETE",
@@ -137,6 +142,7 @@ const ProfilePage = ({ handleLogout }: { handleLogout: () => void }) => {
               onChange={(e) =>
                 setEditableDetails({ ...editableDetails, username: e.target.value })
               }
+              required
             />
           </label>
 
@@ -148,6 +154,7 @@ const ProfilePage = ({ handleLogout }: { handleLogout: () => void }) => {
               onChange={(e) =>
                 setEditableDetails({ ...editableDetails, email: e.target.value })
               }
+              required
             />
           </label>
 

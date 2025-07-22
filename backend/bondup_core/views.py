@@ -1,20 +1,19 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
-from rest_framework.decorators import api_view
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 
-from .models import Post, Like, Comment, Notification  # ✅ Ensure Notification is imported
+from .models import Post, Like, Comment, Notification, Follow
 from .serializers import (
     UserSerializer,
     PostSerializer,
     PostCreateSerializer,
-    CommentSerializer
+    CommentSerializer,
+    RegisterSerializer
 )
-
 
 class LoginView(APIView):
     def post(self, request):
@@ -55,17 +54,15 @@ class CreatePostView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
-def signup(request):
-    username = request.data.get('username')
-    email = request.data.get('email')
-    password = request.data.get('password')
+class RegisterView(APIView):
+    permission_classes = [AllowAny]
 
-    if User.objects.filter(username=username).exists():
-        return Response({'detail': 'Username already taken.'}, status=status.HTTP_400_BAD_REQUEST)
-
-    user = User.objects.create_user(username=username, email=email, password=password)
-    return Response({'detail': 'User created successfully.'}, status=status.HTTP_201_CREATED)
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({'detail': 'User registered successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UpdateProfileView(APIView):
@@ -84,7 +81,7 @@ class LikeDislikeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, post_id):
-        value = request.data.get("value")  
+        value = request.data.get("value")
         if value not in ['like', 'dislike']:
             return Response({'detail': 'Invalid value'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -94,7 +91,6 @@ class LikeDislikeView(APIView):
         like.value = value
         like.save()
 
-        # ✅ Notification for like/dislike (and prevent self-notifications)
         if post.user != request.user:
             Notification.objects.create(
                 recipient=post.user,
@@ -116,7 +112,6 @@ class CommentView(APIView):
         comment = Comment.objects.create(user=request.user, post=post, text=text)
         serializer = CommentSerializer(comment)
 
-        # ✅ Always notify, even for self-comments
         Notification.objects.create(
             recipient=post.user,
             actor=request.user,
@@ -142,18 +137,15 @@ class PostDetailView(APIView):
 
     def put(self, request, post_id):
         post = get_object_or_404(Post, id=post_id)
-        print("Current user making request:", request.user)
 
         if post.user != request.user:
             return Response({"error": "You can only edit your own posts."}, status=status.HTTP_403_FORBIDDEN)
 
-       
         if hasattr(post, 'edited') and post.edited:
             return Response({'error': 'You can only edit once.'}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = PostCreateSerializer(post, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
-            
             serializer.save(edited=True)
             return Response(serializer.data)
 
@@ -181,13 +173,12 @@ class NotificationListView(APIView):
                 "created_at": n.created_at,
                 "actor": n.actor.username,
                 "is_self": n.is_self,
-                "is_read": n.actor == request.user  
+                "is_read": n.actor == request.user
             }
             for n in notifications
         ]
         return Response(data)
 
-from django.shortcuts import get_object_or_404
 
 class DeletePostView(APIView):
     permission_classes = [IsAuthenticated]
@@ -200,3 +191,25 @@ class DeletePostView(APIView):
 
         post.delete()
         return Response({'detail': 'Post deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
+
+class UserProfileView(APIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+    
+class FollowStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        following_count = user.following.count()
+        followers_count = user.followers.count()
+        return Response({
+            "followers": followers_count,
+            "following": following_count,
+        })
