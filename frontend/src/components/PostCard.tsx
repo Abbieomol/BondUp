@@ -1,22 +1,34 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Post } from "../types/types";
 import { MoreHorizontal } from "lucide-react";
 
 interface PostCardProps {
   post: Post;
+  currentUsername: string;
   onLike: (postId: number) => Promise<void>;
   onDislike: (postId: number) => Promise<void>;
   onComment: (postId: number, text: string) => Promise<void>;
   onDelete?: (postId: number) => Promise<void>;
   onEdit?: (postId: number, updatedData: { caption: string; image?: File | null }) => Promise<void>;
+  onDeleteComment?: (commentId: number) => Promise<void>;
 }
 
-export default function PostCard({ post, onLike, onDislike, onComment, onDelete, onEdit }: PostCardProps) {
+export default function PostCard({
+  post,
+  currentUsername,
+  onLike,
+  onDislike,
+  onComment,
+  onDelete,
+  onEdit,
+  onDeleteComment,
+}: PostCardProps) {
   const [commentText, setCommentText] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editCaption, setEditCaption] = useState(post.caption || "");
   const [editImage, setEditImage] = useState<File | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +52,24 @@ export default function PostCard({ post, onLike, onDislike, onComment, onDelete,
     }
     setShowMenu(false);
   };
+
+  const handleCommentDelete = async (commentId: number) => {
+    const confirm = window.confirm("Delete this comment?");
+    if (confirm && onDeleteComment) {
+      await onDeleteComment(commentId);
+    }
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="post-card">
@@ -70,7 +100,7 @@ export default function PostCard({ post, onLike, onDislike, onComment, onDelete,
             </div>
           )}
 
-          <div className="menu-wrapper">
+          <div className="menu-wrapper" ref={menuRef}>
             <button
               title="More options"
               className="menu-btn"
@@ -81,7 +111,14 @@ export default function PostCard({ post, onLike, onDislike, onComment, onDelete,
             {showMenu && (
               <div className="dropdown-menu">
                 <button onClick={handleDelete}>🗑 Delete</button>
-                <button onClick={() => { setEditing(true); setShowMenu(false); }}>✏️ Edit</button>
+                <button
+                  onClick={() => {
+                    setEditing(true);
+                    setShowMenu(false);
+                  }}
+                >
+                  ✏️ Edit
+                </button>
               </div>
             )}
           </div>
@@ -116,6 +153,16 @@ export default function PostCard({ post, onLike, onDislike, onComment, onDelete,
           {post.comments?.map((comment) => (
             <div key={comment.id} className="comment">
               <strong>{comment.user}</strong>: {comment.content}
+              {/* Show delete option if current user is the commenter or post owner */}
+              {(comment.user === currentUsername || post.user_username === currentUsername) && (
+                <button
+                  className="delete-comment-btn"
+                  title="Delete comment"
+                  onClick={() => handleCommentDelete(comment.id)}
+                >
+                  ❌
+                </button>
+              )}
             </div>
           ))}
         </div>

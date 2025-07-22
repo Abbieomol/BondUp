@@ -2,13 +2,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 
-from .models import Post, Like, Comment, Notification, Follow
+from .models import Post, Like, Comment, Notification, Follow, Profile
 from .serializers import (
     UserSerializer,
+    UserProfileSerializer,
     PostSerializer,
     PostCreateSerializer,
     CommentSerializer,
@@ -69,12 +71,16 @@ class UpdateProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request):
-        user = request.user
-        serializer = UserSerializer(user, data=request.data, partial=True)
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=404)
+
+        serializer = UserProfileSerializer(profile, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
 
 
 class LikeDislikeView(APIView):
@@ -201,15 +207,84 @@ class UserProfileView(APIView):
         user = request.user
         serializer = UserSerializer(user)
         return Response(serializer.data)
-    
+
+    def put(self, request):
+        profile = Profile.objects.get(user=request.user)
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+
 class FollowStatsView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user = request.user
+    def get(self, request, username=None):
+        if username:
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return Response({"error": "User not found"}, status=404)
+        else:
+            user = request.user
+
         following_count = user.following.count()
         followers_count = user.followers.count()
         return Response({
             "followers": followers_count,
             "following": following_count,
         })
+
+
+class UserPostsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        posts = Post.objects.filter(user=user).order_by("-created_at")
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_follow(request, username):
+    try:
+        target_user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+
+    if target_user == request.user:
+        return Response({"error": "You cannot follow yourself."}, status=400)
+
+    follow = Follow.objects.filter(follower=request.user, following=target_user).first()
+    if follow:
+        follow.delete()
+        return Response({"status": "unfollowed"}, status=200)
+    else:
+        Follow.objects.create(follower=request.user, following=target_user)
+        return Response({"status": "followed"}, status=201)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_follow_status(request, username):
+    try:
+        target_user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
+
+    is_following = Follow.objects.filter(follower=request.user, following=target_user).exists()
+    return Response({"is_following": is_following})
+  
+class MyPostsView(APIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        posts = Post.objects.filter(user=user).order_by('-created_at')
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)

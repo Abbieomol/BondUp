@@ -352,4 +352,22 @@ h2, h3 {
   margin: 0 auto;
 }
 
-  
+  .follow-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.3s ease;
+}
+
+.follow {
+  background-color: #1e90ff;
+  color: white;
+}
+
+.unfollow {
+  background-color: #ccc;
+  color: black;
+}

@@ -21,9 +21,13 @@ class Profile(models.Model):
     """Extended profile info for users."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     bio = models.TextField(blank=True)
-    contact = models.CharField(max_length=100, blank=True)
-    gender = models.CharField(max_length=20, blank=True)
-    name = models.CharField(max_length=100, blank=True)
+    contact = models.CharField(max_length=14, blank=False)
+    gender = models.CharField(max_length=20, choices=[
+        ("male", "Male"),
+        ("female", "Female"),
+        ("prefer_not_to_say", "Prefer not to say")
+    ], blank=True)
+    name = models.CharField(max_length=50, blank=False)
     professional_info = models.TextField(blank=True)
 
     def __str__(self):

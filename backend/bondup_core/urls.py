@@ -1,33 +1,44 @@
 from django.urls import path
 from .views import (
     LoginView,
-    UserProfileView,
+    RegisterView,
     PostListCreateView,
     CreatePostView,
+    UserProfileView,
     UpdateProfileView,
-    LikeDislikeView,
-    CommentView,
-    RegisterView,
-    FollowStatsView,
-    NotificationListView,
+    PostDetailView,
     DeletePostView,
-    PostDetailView
+    CommentView,
+    LikeDislikeView,
+    NotificationListView,
+    UserPostsView,
+    FollowStatsView,
+    toggle_follow,
+    check_follow_status,
+    MyPostsView,
 )
 
 urlpatterns = [
-    path('signup/', RegisterView.as_view(), name='signup'),
     path('login/', LoginView.as_view(), name='login'),
-    path('follow-stats/', FollowStatsView.as_view(), name='follow_stats'),
-    path('posts/', PostListCreateView.as_view(), name='post_list_create'),
-    path('posts/create/', CreatePostView.as_view(), name='post_create'),
+    path('signup/', RegisterView.as_view(), name='signup'),
+
+    path('posts/', PostListCreateView.as_view(), name='posts'),
+    path('posts/create/', CreatePostView.as_view(), name='create_post'),
+    path('posts/user/', UserPostsView.as_view(), name='user_posts'),
     path('posts/<int:post_id>/', PostDetailView.as_view(), name='post_detail'),
-    path('posts/<int:post_id>/delete/', DeletePostView.as_view(), name='post_delete'),
-    path('posts/<int:post_id>/like/', LikeDislikeView.as_view(), name='post_like'),
+    path('posts/<int:post_id>/delete/', DeletePostView.as_view(), name='delete_post'),
 
-    path('posts/<int:post_id>/comment/', CommentView.as_view(), name='post_comment'),
-    path('profile/', UserProfileView.as_view(), name='user_profile'),
-
-    path('profile/update/', UpdateProfileView.as_view(), name='update_profile'),
+    path('posts/<int:post_id>/like/', LikeDislikeView.as_view(), name='like_dislike'),
+    path('posts/<int:post_id>/comment/', CommentView.as_view(), name='comment'),
+    path('comments/<int:post_id>/', CommentView.as_view(), name='comment_delete'),
+    
     path('notifications/', NotificationListView.as_view(), name='notifications'),
-
+    
+    path('profile/', UserProfileView.as_view(), name='profile'),
+    path('update-profile/', UpdateProfileView.as_view(), name='update_profile'),
+    path('my-posts/', MyPostsView.as_view(), name='my-posts'),
+    path('follow-stats/', FollowStatsView.as_view(), name='my_follow_stats'),
+    path('follow-stats/<str:username>/', FollowStatsView.as_view(), name='user_follow_stats'),
+    path('follow/<str:username>/', toggle_follow, name='toggle_follow'),
+    path('follow-status/<str:username>/', check_follow_status, name='check_follow_status'),
 ]

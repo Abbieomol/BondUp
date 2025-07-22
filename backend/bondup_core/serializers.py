@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Post, Like, Comment
+from .models import Post, Like, Comment, Follow
 
 
 class CommentSerializer(serializers.ModelSerializer): 
@@ -16,9 +16,11 @@ class PostSerializer(serializers.ModelSerializer):
     dislikes = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
 
+    user_username = serializers.CharField(source='user.username', read_only=True)
+
     class Meta:
         model = Post
-        fields = ['id', 'user', 'caption', 'image', 'created_at', 'likes', 'dislikes', 'comments']
+        fields = ['id', 'user', 'caption', 'image', 'created_at', 'likes', 'dislikes', 'comments', 'edited', 'user_username']
 
     def get_likes(self, obj):
         return obj.likes.filter(value='like').count()
@@ -91,3 +93,13 @@ class RegisterSerializer(serializers.ModelSerializer):
             password=validated_data['password']
         )
         return user
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'name', 'bio', 'contact', 'gender', 'professional_info']
+
+class FollowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = ['id', 'follower', 'following', 'followed_at']
