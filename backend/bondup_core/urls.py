@@ -8,6 +8,7 @@ from .views import (
     UpdateProfileView,
     PostDetailView,
     DeletePostView,
+    DeleteCommentView,
     CommentView,
     LikeDislikeView,
     NotificationListView,
@@ -31,8 +32,7 @@ urlpatterns = [
 
     path('posts/<int:post_id>/like/', LikeDislikeView.as_view(), name='like_dislike'),
     path('posts/<int:post_id>/comment/', CommentView.as_view(), name='comment'),
-    path('comments/<int:post_id>/', CommentView.as_view(), name='comment_delete'),
-    
+    path('comments/<int:comment_id>/delete/', DeleteCommentView.as_view(), name='comment_delete'),
     path('notifications/', NotificationListView.as_view(), name='notifications'),
     
     path('profile/', UserProfileView.as_view(), name='profile'),

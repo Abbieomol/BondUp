@@ -173,7 +173,7 @@ class NotificationListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+        notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
         serializer = NotificationSerializer(notifications, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -301,3 +301,18 @@ class UserSettingView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class DeleteCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, comment_id):
+        try:
+            comment = Comment.objects.get(id=comment_id)
+            # Allow deletion only if the current user is the comment owner or post owner
+            if comment.user == request.user or comment.post.user == request.user:
+                comment.delete()
+                return Response({'message': 'Comment deleted'}, status=204)
+            else:
+                return Response({'error': 'Unauthorized'}, status=403)
+        except Comment.DoesNotExist:
+            return Response({'error': 'Comment not found'}, status=404)   
