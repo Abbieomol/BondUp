@@ -95,28 +95,39 @@ const ProfilePage = ({ handleLogout }: { handleLogout: () => void }) => {
   }, [fetchProfile, fetchUserPosts, fetchFollowStats]);
 
   const handleSave = async () => {
-    try {
-      const res = await fetch(`${backend_api}update-profile/`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...editableDetails,
-          professional_info: editableDetails.professionalInfo,
-        }),
-      });
+  try {
+   
+    const payload = {
+      ...editableDetails,
+      professional_info: editableDetails.professionalInfo || '',  
+    };
 
-      if (res.ok) {
-        alert("Profile updated!");
-      } else {
-        alert("Failed to update profile.");
-      }
-    } catch (error) {
-      console.error("Save error", error);
+    delete payload.professionalInfo;
+
+    const res = await fetch(`${backend_api}update-profile/`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      alert("Profile updated!");
+      console.log("Updated user data:", data);
+    } else {
+      const errorData = await res.json();
+      console.error("Update failed:", errorData);
+      alert("Failed to update profile.");
     }
-  };
+  } catch (error) {
+    console.error("Save error", error);
+    alert("Something went wrong while updating profile.");
+  }
+};
+
 
   const handleDeleteAccount = async () => {
     if (!window.confirm("Are you sure you want to delete your account?")) return;

@@ -8,6 +8,7 @@ import Profile from "./pages/ProfilePage";
 import Notifications from "./pages/Notifications";
 import type { User } from "./types/types";
 import "./styles/App.css";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -82,6 +83,16 @@ function App() {
             element={
               user ? (
                 <Profile user={user} handleLogout={handleLogout} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              user ? (
+                <SettingsPage user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/" replace />
               )

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Post, Like, Comment, Follow
+from .models import Post, Like, Comment, Follow, Notification, Profile, UserSetting
 
 
 class CommentSerializer(serializers.ModelSerializer): 
@@ -37,7 +37,7 @@ class PostSerializer(serializers.ModelSerializer):
         return None
 
 
-class UserSerializer(serializers.ModelSerializer):  
+class UserSerializer(serializers.ModelSerializer):
     bio = serializers.CharField(source='profile.bio', allow_blank=True, required=False)
     contact = serializers.CharField(source='profile.contact', allow_blank=True, required=False)
     gender = serializers.CharField(source='profile.gender', allow_blank=True, required=False)
@@ -49,21 +49,22 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'bio', 'contact', 'gender', 'name', 'professional_info']
 
     def update(self, instance, validated_data):
+        # Update User fields
         instance.username = validated_data.get('username', instance.username)
         instance.email = validated_data.get('email', instance.email)
         instance.save()
 
+        # Update Profile fields
         profile_data = validated_data.get('profile', {})
-        profile = instance.profile
-        profile.bio = profile_data.get('bio', profile.bio)
-        profile.contact = profile_data.get('contact', profile.contact)
-        profile.gender = profile_data.get('gender', profile.gender)
-        profile.name = profile_data.get('name', profile.name)
-        profile.professional_info = profile_data.get('professional_info', profile.professional_info)
-        profile.save()
+        profile = getattr(instance, 'profile', None)
+
+        if profile:
+            for attr in ['bio', 'contact', 'gender', 'name', 'professional_info']:
+                if attr in profile_data:
+                    setattr(profile, attr, profile_data[attr])
+            profile.save()
 
         return instance
-
 
 class PostCreateSerializer(serializers.ModelSerializer):  
     class Meta:
@@ -103,3 +104,30 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Follow
         fields = ['id', 'follower', 'following', 'followed_at']
+
+class NotificationSerializer(serializers.ModelSerializer):
+    actor = serializers.CharField(source='actor.username', read_only=True)
+    post_id = serializers.SerializerMethodField()
+    is_self = serializers.SerializerMethodField()
+    is_read = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = ['id', 'message', 'post_id', 'created_at', 'actor', 'is_self', 'is_read']
+
+    def get_post_id(self, obj):
+        return obj.post.id if obj.post else None
+
+    def get_is_self(self, obj):
+        request = self.context.get('request')
+        return obj.actor == request.user if request else False
+
+    def get_is_read(self, obj):
+        request = self.context.get('request')
+        # You may want to store read/unread state separately in your model.
+        return obj.actor == request.user if request else False
+    
+class UserSettingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserSetting
+        fields = ['colorScheme', 'sidebarStyle', 'postDisplay']

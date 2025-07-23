@@ -7,14 +7,16 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 
-from .models import Post, Like, Comment, Notification, Follow, Profile
+from .models import Post, Like, Comment, Notification, Follow, Profile, UserSetting
 from .serializers import (
+    NotificationSerializer,
     UserSerializer,
     UserProfileSerializer,
     PostSerializer,
     PostCreateSerializer,
     CommentSerializer,
-    RegisterSerializer
+    RegisterSerializer,
+    UserSettingSerializer
 )
 
 class LoginView(APIView):
@@ -74,13 +76,13 @@ class UpdateProfileView(APIView):
         try:
             profile = Profile.objects.get(user=request.user)
         except Profile.DoesNotExist:
-            return Response({"error": "Profile not found"}, status=404)
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = UserProfileSerializer(profile, data=request.data)
+        serializer = UserProfileSerializer(profile, data=request.data, partial=True)  # partial=True allows partial updates
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=200)
-        return Response(serializer.errors, status=400)
+            return Response({"message": "Profile updated successfully", "profile": serializer.data}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LikeDislikeView(APIView):
@@ -171,19 +173,9 @@ class NotificationListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        notifications = request.user.notifications.all().order_by('-created_at')
-        data = [
-            {
-                "message": n.message,
-                "post_id": n.post.id if n.post else None,
-                "created_at": n.created_at,
-                "actor": n.actor.username,
-                "is_self": n.is_self,
-                "is_read": n.actor == request.user
-            }
-            for n in notifications
-        ]
-        return Response(data)
+        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+        serializer = NotificationSerializer(notifications, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class DeletePostView(APIView):
@@ -288,3 +280,24 @@ class MyPostsView(APIView):
         posts = Post.objects.filter(user=user).order_by('-created_at')
         serializer = PostSerializer(posts, many=True)
         return Response(serializer.data)
+    
+class UserSettingView(APIView):
+    serializer_class = UserSettingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        settings, created = UserSetting.objects.get_or_create(user=self.request.user)
+        return settings
+
+    def get(self, request):
+        settings = self.get_object()
+        serializer = self.serializer_class(settings)
+        return Response(serializer.data)
+
+    def put(self, request):
+        settings = self.get_object()
+        serializer = self.serializer_class(settings, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

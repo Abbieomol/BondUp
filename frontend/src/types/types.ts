@@ -51,7 +51,16 @@ export interface UserProfile {
 
 
 export interface UserSettings {
-  theme: 'light' | 'dark' | 'green-orange';
-  sidebarLayout: 'expanded' | 'collapsed';
-  postView: 'grid' | 'list';
+  colorScheme: 'light' | 'dark' | 'green-orange';
+  sidebarStyle: 'expanded' | 'collapsed' | 'minimal' | 'compact';
+  postDisplay: 'grid' | 'list';
 }
+
+
+export interface Notification {
+  id: number;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+}
+

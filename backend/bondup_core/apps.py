@@ -7,3 +7,6 @@ class BondupCoreConfig(AppConfig):
 
 def ready(self):
         import bondup_core.signals
+
+def ready(self):
+    import bondup_core.signals

@@ -70,10 +70,11 @@ class Notification(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     is_self = models.BooleanField(default=False)
+    is_read = models.BooleanField(default=False)
 
 
     def __str__(self):
-        return f"Notification for {self.recipient.username}"
+        return f"Notification for {self.recipient.username}: {self.message}"
     
 class Follow(models.Model):
     follower = models.ForeignKey(User, related_name='following', on_delete=models.CASCADE)
@@ -85,3 +86,12 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.username} follows {self.following.username}"
+    
+class UserSetting(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
+    colorScheme = models.CharField(max_length=20, default='dark')  # or 'light'
+    sidebarStyle = models.CharField(max_length=20, default='compact')  # or 'expanded'
+    postDisplay = models.CharField(max_length=20, default='grid')  # or 'list'
+
+    def __str__(self):
+        return f"Settings for {self.user.username}"
