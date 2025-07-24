@@ -30,7 +30,7 @@ export type Post = {
 export type Comment = {
   id: number;
   user: string;
-  content: string;
+  text: string;
   created_at: string;
 };
 
@@ -50,11 +50,19 @@ export interface UserProfile {
 }
 
 
-export interface UserSettings {
-  colorScheme: 'light' | 'dark' | 'green-orange';
-  sidebarStyle: 'expanded' | 'collapsed' | 'minimal' | 'compact';
-  postDisplay: 'grid' | 'list';
-}
+export type UserSettings = {
+  colorScheme: "dark" | "light" | "green" | "orange" | "blue" | "purple" | "pink" | "multicolor" | "yellow" | "red";
+  sidebarStyle: "compact" | "expanded" | "minimal" | "collapsed" | "default";
+  postDisplay: "grid" | "list";
+  fontSize?: "small" | "medium" | "large";
+  language?: "en" | "fr" | "es" | "swahili" | "arabic";
+  autoplayVideos?: boolean;
+  profileVisibility?: "public" | "private";
+  notificationsEnabled?: boolean;
+  postSort?: "newest" | "most_liked" | "oldest";
+  accentColor?: "blue" | "green" | "orange" | "purple" | "pink" | "yellow" | "red";
+  hideSuggestions?: boolean;
+};
 
 
 export interface Notification {

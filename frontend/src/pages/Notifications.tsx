@@ -20,31 +20,44 @@ export default function Notifications({ user, onLogout }: Props) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/api/notifications/", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+ useEffect(() => {
+  const fetchNotifications = async () => {
+    const token = localStorage.getItem("accessToken");
 
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+    if (!token) {
+      setError("You are not logged in.");
+      return;
+    }
 
-        const data = await res.json();
-        setNotifications(data);
-      } catch (err) {
-        console.error("Failed to fetch notifications:", err);
-        setError("Could not load notifications.");
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/notifications/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.status === 401) {
+        setError("Unauthorized. Please log in again.");
+        return;
       }
-    };
 
-    fetchNotifications();
-  }, []);
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setNotifications(data);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+      setError("Could not load notifications.");
+    }
+  };
+
+  fetchNotifications();
+}, []);
+
 
   return (
     <div className="notifications-page">

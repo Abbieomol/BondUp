@@ -53,8 +53,8 @@ export default function PostCard({
     setShowMenu(false);
   };
 
-  const handleCommentDelete = async (commentId: number) => {
-    const confirm = window.confirm("Delete this comment?");
+  const handleDeleteComment = async (commentId: number) => {
+    const confirm = window.confirm("Are you sure you want to delete this comment?");
     if (confirm && onDeleteComment) {
       await onDeleteComment(commentId);
     }
@@ -152,13 +152,12 @@ export default function PostCard({
         <div className="comments">
           {post.comments?.map((comment) => (
             <div key={comment.id} className="comment">
-              <strong>{comment.user}</strong>: {comment.content}
-              {/* Show delete option if current user is the commenter or post owner */}
+              <strong>{comment.user}</strong>: {comment.text}
               {(comment.user === currentUsername || post.user_username === currentUsername) && (
                 <button
                   className="delete-comment-btn"
                   title="Delete comment"
-                  onClick={() => handleCommentDelete(comment.id)}
+                  onClick={() => handleDeleteComment(comment.id)}
                 >
                   ❌
                 </button>
