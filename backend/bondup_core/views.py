@@ -282,25 +282,19 @@ class MyPostsView(APIView):
         return Response(serializer.data)
     
 class UserSettingView(APIView):
-    serializer_class = UserSettingSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
-        settings, created = UserSetting.objects.get_or_create(user=self.request.user)
-        return settings
-
     def get(self, request):
-        settings = self.get_object()
-        serializer = self.serializer_class(settings)
+        user_settings, _ = UserSetting.objects.get_or_create(user=request.user)
+        serializer = UserSettingSerializer(user_settings)
         return Response(serializer.data)
 
     def put(self, request):
-        settings = self.get_object()
-        serializer = self.serializer_class(settings, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_settings, _ = UserSetting.objects.get_or_create(user=request.user)
+        serializer = UserSettingSerializer(user_settings, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
     
 class DeleteCommentView(APIView):
     permission_classes = [IsAuthenticated]
