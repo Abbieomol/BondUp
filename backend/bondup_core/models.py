@@ -89,9 +89,27 @@ class Follow(models.Model):
     
 class UserSetting(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='settings')
-    colorScheme = models.CharField(max_length=20, default='dark')  # or 'light'
-    sidebarStyle = models.CharField(max_length=20, default='compact')  # or 'expanded'
-    postDisplay = models.CharField(max_length=20, default='grid')  # or 'list'
+    colorScheme = models.CharField(max_length=20, default='dark')  
+    sidebarStyle = models.CharField(max_length=20, default='compact')  
+    postDisplay = models.CharField(max_length=20, default='grid')  
 
     def __str__(self):
         return f"Settings for {self.user.username}"
+    
+class MoodEntry(models.Model):
+    MOOD_CHOICES = [
+        ('happy', 'Happy'),
+        ('sad', 'Sad'),
+        ('angry', 'Angry'),
+        ('anxious', 'Anxious'),
+        ('neutral', 'Neutral'),
+        ('excited', 'Excited'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mood_entries')
+    mood = models.CharField(max_length=20, choices=MOOD_CHOICES)
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.created_at} - {self.mood}"

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Post, Like, Comment, Follow, Notification, Profile, UserSetting
+from .models import Post, Like, Comment, Follow, Notification, Profile, UserSetting, MoodEntry
 
 
 class CommentSerializer(serializers.ModelSerializer): 
@@ -131,3 +131,8 @@ class UserSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSetting
         fields = ['colorScheme', 'sidebarStyle', 'postDisplay']
+
+class MoodEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MoodEntry
+        fields = ['id', 'mood', 'note', 'created_at']

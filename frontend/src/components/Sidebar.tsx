@@ -40,6 +40,7 @@ const Sidebar = () => {
         <Link to="/create-post">➕ Create Post</Link>
         <Link to="/notifications">🔔 Notifications</Link>
         <Link to="/settings">⚙️ Settings</Link>
+        <Link to="/mood-tracker">😊 Mood Tracker</Link>
       </div>
     </>
   );

@@ -72,3 +72,7 @@ export interface Notification {
   is_read: boolean;
 }
 
+export interface Mood {
+  mood: "happy" | "sad" | "angry" | "anxious" | "excited" | "";
+  note?: string;
+};
