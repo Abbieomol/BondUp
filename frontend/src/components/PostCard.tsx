@@ -62,10 +62,12 @@ export default function PostCard({
   };
 
   useEffect(() => {
-    if (post.caption) {
-      fetchRelatedVideos(post.caption);
-    }
-  }, [post.caption]);
+  if (post.caption && post.caption.trim().length > 0) {
+    const safeQuery = encodeURIComponent(post.caption.trim());
+    fetchRelatedVideos(safeQuery);
+  }
+}, [post.caption]);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
