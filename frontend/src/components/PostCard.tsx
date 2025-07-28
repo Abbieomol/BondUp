@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Post } from "../types/types";
 import { MoreHorizontal } from "lucide-react";
+import {YOUTUBE_API_KEY} from "../config";
 
 interface PostCardProps {
   post: Post;
@@ -45,7 +46,7 @@ export default function PostCard({
   const fetchRelatedVideos = async (query: string) => {
     try {
       setLoadingVideos(true);
-      const apiKey = "AIzaSyBb1E-d4ODYJtTg_1b6T4lxvAvouHo15wg"; 
+      const apiKey = YOUTUBE_API_KEY; 
       const res = await fetch(
         `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
           query

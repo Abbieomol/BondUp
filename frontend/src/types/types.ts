@@ -16,6 +16,8 @@ export type Post = {
   user: User;                              
   caption: string;
   image?: string;
+  video_id?: string;
+  include_video?: boolean;
   created_at: string;
   likes: number;
   dislikes: number;

@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/App.css";
 import type { YouTubeVideo } from "../types/types";
+import { YOUTUBE_API_KEY } from "../config";
 
 
-const YOUTUBE_API_KEY = "AIzaSyBb1E-d4ODYJtTg_1b6T4lxvAvouHo15wg";
+// const YOUTUBE_API_KEY = "YOUTUBE_API_KEY";
 
 export default function VideoSearch() {
   const [query, setQuery] = useState("");
