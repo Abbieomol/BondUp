@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Post, Like, Comment, Follow, Notification, Profile, UserSetting, MoodEntry
+from .models import Post, Like, Comment, Follow, Notification, Profile, UserSetting
 
 
 class CommentSerializer(serializers.ModelSerializer): 
@@ -49,12 +49,12 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'bio', 'contact', 'gender', 'name', 'professional_info']
 
     def update(self, instance, validated_data):
-        # Update User fields
+     
         instance.username = validated_data.get('username', instance.username)
         instance.email = validated_data.get('email', instance.email)
         instance.save()
 
-        # Update Profile fields
+        
         profile_data = validated_data.get('profile', {})
         profile = getattr(instance, 'profile', None)
 
@@ -132,7 +132,3 @@ class UserSettingSerializer(serializers.ModelSerializer):
         model = UserSetting
         fields = ['colorScheme', 'sidebarStyle', 'postDisplay']
 
-class MoodEntrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MoodEntry
-        fields = ['id', 'mood', 'note', 'created_at']

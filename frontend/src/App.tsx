@@ -6,7 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import CreatePost from "./pages/CreatePost";
 import Profile from "./pages/ProfilePage";
 import Notifications from "./pages/Notifications";
-import MoodTracker from "./pages/Moodtracker";
+
 import type { User } from "./types/types";
 import "./styles/App.css";
 import SettingsPage from "./pages/SettingsPage";
@@ -104,16 +104,6 @@ function App() {
             element={
               user ? (
                 <Notifications user={user} onLogout={handleLogout} />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="/mood-tracker"
-            element={
-              user ? (
-                <MoodTracker user={user} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/" replace />
               )

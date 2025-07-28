@@ -18,7 +18,7 @@ from .views import (
     check_follow_status,
     MyPostsView,
     UserSettingView,
-    MoodEntryView
+ 
 )
 
 urlpatterns = [
@@ -44,5 +44,4 @@ urlpatterns = [
     path('follow/<str:username>/', toggle_follow, name='toggle_follow'),
     path('follow-status/<str:username>/', check_follow_status, name='check_follow_status'),
     path('settings/', UserSettingView.as_view(), name='user_settings'),
-    path('mood-entries/', MoodEntryView.as_view(), name='mood_entries'),
 ]

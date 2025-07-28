@@ -75,4 +75,17 @@ export interface Notification {
 export interface Mood {
   mood: "happy" | "sad" | "angry" | "anxious" | "excited" | "";
   note?: string;
+  Quote?: string;
 };
+
+export type YouTubeVideo = {
+    videoId: number;
+    title: string;
+    description: string;
+    thumbnails: {
+      medium: {
+        url: string;
+      };
+    };
+  };
+

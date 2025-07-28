@@ -13,6 +13,15 @@ interface PostCardProps {
   onDeleteComment?: (commentId: number) => Promise<void>;
 }
 
+type Video = {
+  id: { videoId: string };
+  snippet: {
+    title: string;
+    thumbnails: { medium: { url: string } };
+    channelTitle: string;
+  };
+};
+
 export default function PostCard({
   post,
   currentUsername,
@@ -29,6 +38,33 @@ export default function PostCard({
   const [editCaption, setEditCaption] = useState(post.caption || "");
   const [editImage, setEditImage] = useState<File | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const [videos, setVideos] = useState<Video[]>([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+
+  const fetchRelatedVideos = async (query: string) => {
+    try {
+      setLoadingVideos(true);
+      const apiKey = "AIzaSyBb1E-d4ODYJtTg_1b6T4lxvAvouHo15wg"; 
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
+          query
+        )}&type=video&key=${apiKey}&maxResults=3`
+      );
+      const data = await res.json();
+      setVideos(data.items || []);
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+    } finally {
+      setLoadingVideos(false);
+    }
+  };
+
+  useEffect(() => {
+    if (post.caption) {
+      fetchRelatedVideos(post.caption);
+    }
+  }, [post.caption]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +96,6 @@ export default function PostCard({
     }
   };
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -123,6 +158,29 @@ export default function PostCard({
             )}
           </div>
         </div>
+
+      
+        {loadingVideos && <p>Loading related videos...</p>}
+        {!loadingVideos && videos.length > 0 && (
+          <div className="video-preview-list">
+            {videos.map((video) => (
+              <div key={video.id.videoId} className="video-preview">
+                <a
+                  href={`https://www.youtube.com/watch?v=${video.id.videoId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <img
+                    src={video.snippet.thumbnails.medium.url}
+                    alt={video.snippet.title}
+                    className="video-thumbnail"
+                  />
+                  <p className="video-title">{video.snippet.title}</p>
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="post-meta">
           <span className="likes">❤️ {post.likes}</span>

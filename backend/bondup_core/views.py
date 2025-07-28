@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 import requests
 from rest_framework.parsers import JSONParser
 
-from .models import Post, Like, Comment, Notification, Follow, Profile, UserSetting, MoodEntry
+from .models import Post, Like, Comment, Notification, Follow, Profile, UserSetting
 from .serializers import (
     NotificationSerializer,
     UserSerializer,
@@ -21,7 +21,7 @@ from .serializers import (
     CommentSerializer,
     RegisterSerializer,
     UserSettingSerializer,
-    MoodEntrySerializer
+    
 )
 
 class LoginView(APIView):
@@ -316,52 +316,3 @@ class DeleteCommentView(APIView):
         except Comment.DoesNotExist:
             return Response({'error': 'Comment not found'}, status=404)   
         
-class MoodEntryView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        """Return mood entries and a motivational quote"""
-        if not request.user.is_authenticated:
-            return JsonResponse({'detail': 'Authentication required.'}, status=401)
-
-        moods = MoodEntry.objects.filter(user=request.user).order_by('-created_at')
-        serializer = MoodEntrySerializer(moods, many=True)
-        quote = self.get_daily_quote()
-
-        return JsonResponse({
-            'mood_entries': serializer.data,
-            'quote': quote
-        }, status=status.HTTP_200_OK, safe=False)
-
-    def post(self, request):
-        """Create a new mood entry if not already created today"""
-        if not request.user.is_authenticated:
-            return JsonResponse({'detail': 'Authentication required.'}, status=401)
-
-        today = date.today()
-        if MoodEntry.objects.filter(user=request.user, created_at__date=today).exists():
-            return JsonResponse({'detail': 'Mood already submitted for today.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        data = JSONParser().parse(request)
-        serializer = MoodEntrySerializer(data=data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return JsonResponse(serializer.data, status=status.HTTP_201_CREATED)
-        return JsonResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def get_daily_quote(self):
-        """Fetch quote from zenquotes.io"""
-        try:
-            res = requests.get("https://zenquotes.io/api/today")
-            if res.status_code == 200:
-                data = res.json()
-                return {
-                    'quote': data[0].get("q"),
-                    'author': data[0].get("a")
-                }
-        except Exception as e:
-            print("Quote error:", e)
-        return {
-            'quote': "Stay positive. You got this!",
-            'author': "Unknown"
-        }
