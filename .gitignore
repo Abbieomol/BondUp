@@ -1,20 +1,48 @@
-# Python
+# Node
+node_modules/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# dotenv environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vite cache
+.vite/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Editor settings
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# SQLite database files
+*.sqlite3
+*.sqlite3-journal
+
+ (sensitive API keys)
+src/config.ts
+
+# Python/Django
 __pycache__/
 *.py[cod]
 *.env
 env/
 venv/
-*.sqlite3
-
-# Django
-*.log
 staticfiles/
 media/
-
-# IDEs
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
