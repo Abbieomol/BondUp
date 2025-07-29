@@ -550,9 +550,6 @@ body[data-accent="red"] {
   padding: 1rem;
 }
 
-.carousel::-webkit-scrollbar {
-  display: none;
-}
 
 .carousel-item {
   flex: 0 0 auto;
