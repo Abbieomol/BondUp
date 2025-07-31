@@ -1,0 +1,24 @@
+services:
+  web-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: web-01
+    ports:
+      - "8001:8000"
+
+  web-02:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: web-02
+    ports:
+      - "8002:8000"
+
+  lb-01:
+    image: haproxy:latest
+    container_name: lb-01
+    ports:
+      - "8080:80"
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
