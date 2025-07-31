@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
-import requests
+
 from rest_framework.parsers import JSONParser
 
 from .models import Post, Like, Comment, Notification, Follow, Profile, UserSetting
